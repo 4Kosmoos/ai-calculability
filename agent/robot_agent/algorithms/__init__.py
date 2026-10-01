@@ -1,3 +1,4 @@
 from .bfs import bfs
+from .dfs import dfs
 
-ALGORITHMS = {"bfs": bfs}
+ALGORITHMS = {"bfs": bfs, "dfs": dfs}

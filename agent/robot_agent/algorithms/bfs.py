@@ -3,37 +3,28 @@ from time import perf_counter
 
 from ..client import GridClient
 from ..models import Problem, SearchResult
+from .common import finish
 
-def bfs(client:GridClient, problem: Problem)-> SearchResult:
-    t0 = perf_counter()
-    calls0 = client.api_calls
+
+def bfs(client: GridClient, problem: Problem) -> SearchResult:
+    """FIFO: O(V + E)."""
+    t0, calls0 = perf_counter(), client.api_calls
     start, target = problem.start, problem.target
-    
-    frontier = deque([start]) # FIFO
-    parent={start:None}
-    expanded = 0
-    found = False
-    
+
+    frontier = deque([start])
+    parent = {start: None}
+    expanded, found = 0, False
+
     while frontier and not found:
         node = frontier.popleft()
         expanded += 1
         for nxt, _cost in client.neighbors(node):
-            if nxt in parent:          # already viewed
+            if nxt in parent:
                 continue
             parent[nxt] = node
-            if nxt == target:          
+            if nxt == target:
                 found = True
                 break
             frontier.append(nxt)
 
-    path, cost = [], 0.0
-    if found:
-        node = target
-        while node is not None:        # go to the target from the start 
-            path.append(node)
-            node = parent[node]
-        path.reverse()
-        cost = sum(client.cost(u, v) for u, v in zip(path, path[1:]))
-
-    return SearchResult("bfs", found, path, cost, expanded,
-                        client.api_calls - calls0, perf_counter() - t0)
+    return finish("bfs", client, parent, target, found, expanded, t0, calls0)
