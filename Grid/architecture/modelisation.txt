@@ -1,0 +1,11 @@
+- Conceptualisation :
+-> identifiant d'un node : tuple (ligne, colonne)
+-> voisinage : 4 voisinages (haut, bas, gauche, droite)- 8 voisinages ( diagonales)
+-> obstacles : soit supprimer - soit tester et donc mettre un obstacle à True ( + l'infini ?)
+
+- Modélisation
+     c0  c1  c2  c3  c4
+r0 [ S ] .   .   .   .
+r1   .  [#]  .  [#]  .
+r2   .   .   .   .   .
+r3   .   .  [#]  .  [G]

@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1860 1000" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#64748b"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1e293b" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="1860" height="1000" fill="#f4f6f9"/>
+
+  <!-- title -->
+  <text x="930" y="52" text-anchor="middle" font-size="30" font-weight="700" fill="#0f172a">Architecture hexagonale — Ports &amp; Adaptateurs</text>
+  <text x="930" y="84" text-anchor="middle" font-size="17" fill="#475569">Télémétrie (compteurs &amp; niveaux) et alertes du parc de copieurs</text>
+
+  <!-- section labels -->
+  <text x="195" y="158" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#94a3b8">PILOTAGE · ADAPTATEURS PRIMAIRES</text>
+  <text x="860" y="158" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#d1a460">CŒUR APPLICATIF</text>
+  <text x="1415" y="158" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#94a3b8">ADAPTATEURS SECONDAIRES</text>
+  <text x="1705" y="158" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#94a3b8">SYSTÈMES EXTERNES</text>
+
+  <!-- ================= HEXAGON CORE ================= -->
+  <polygon points="860,220 1137,380 1137,700 860,860 583,700 583,380" fill="#fffbeb" stroke="#d97706" stroke-width="3" filter="url(#shadow)"/>
+
+  <text x="860" y="300" text-anchor="middle" font-size="20" font-weight="700" fill="#92400e">CŒUR MÉTIER — DOMAINE</text>
+  <text x="860" y="320" text-anchor="middle" font-size="13" font-style="italic" fill="#b45309">indépendant des constructeurs</text>
+
+  <!-- service boxes -->
+  <g>
+    <rect x="680" y="342" width="360" height="66" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="860" y="370" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2937">Orchestrateur de télémétrie</text>
+    <text x="860" y="390" text-anchor="middle" font-size="12.5" fill="#6b7280">aiguille chaque copieur vers sa source (mode)</text>
+
+    <rect x="680" y="418" width="360" height="66" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="860" y="446" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2937">Synchro compteurs &amp; niveaux</text>
+    <text x="860" y="466" text-anchor="middle" font-size="12.5" fill="#6b7280">anti-régression · dates fiabilisées</text>
+
+    <rect x="680" y="494" width="360" height="66" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="860" y="522" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2937">Synchro alertes</text>
+    <text x="860" y="542" text-anchor="middle" font-size="12.5" fill="#6b7280">déduplication · gravité · consommable associé</text>
+
+    <rect x="680" y="570" width="360" height="58" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="860" y="596" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2937">Ménage des alertes</text>
+    <text x="860" y="614" text-anchor="middle" font-size="12.5" fill="#6b7280">clôture après résolution / livraison</text>
+
+    <rect x="700" y="638" width="320" height="58" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="860" y="664" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">Modèle commun normalisé</text>
+    <text x="860" y="682" text-anchor="middle" font-size="12" fill="#6b7280">snapshot : compteurs · niveaux · alertes</text>
+  </g>
+  <text x="860" y="726" text-anchor="middle" font-size="12" font-style="italic" fill="#b45309">aucun code / SDK constructeur ici</text>
+
+  <!-- ================= PRIMARY (driving) ADAPTERS ================= -->
+  <g>
+    <rect x="70" y="398" width="250" height="96" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+    <text x="195" y="432" text-anchor="middle" font-size="16" font-weight="700" fill="#1e3a8a">CRON Synchronisation</text>
+    <text x="195" y="456" text-anchor="middle" font-size="12.5" fill="#1e40af">toutes les ~15 min</text>
+    <text x="195" y="476" text-anchor="middle" font-size="12.5" fill="#1e40af">compteurs · alertes · ménage</text>
+
+    <rect x="70" y="566" width="250" height="96" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+    <text x="195" y="600" text-anchor="middle" font-size="16" font-weight="700" fill="#1e3a8a">CRON Détection de source</text>
+    <text x="195" y="624" text-anchor="middle" font-size="12.5" fill="#1e40af">2× / jour</text>
+    <text x="195" y="644" text-anchor="middle" font-size="12.5" fill="#1e40af">détermine le mode du copieur</text>
+  </g>
+
+  <!-- primary ports (on left edge) -->
+  <g>
+    <rect x="508" y="407" width="150" height="62" rx="10" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="583" y="432" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Port d'entrée</text>
+    <text x="583" y="451" text-anchor="middle" font-size="12" fill="#cbd5e1">Synchronisation</text>
+
+    <rect x="508" y="575" width="150" height="62" rx="10" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="583" y="600" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Port d'entrée</text>
+    <text x="583" y="619" text-anchor="middle" font-size="12" fill="#cbd5e1">Détection source</text>
+  </g>
+
+  <!-- arrows: driving adapter -> primary port -> core -->
+  <line x1="320" y1="446" x2="505" y2="438" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="320" y1="614" x2="505" y2="606" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="658" y1="438" x2="686" y2="440" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="658" y1="606" x2="686" y2="598" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- secondary ports (on right edge) -->
+  <g>
+    <rect x="1062" y="408" width="150" height="56" rx="10" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="1137" y="431" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Port Source</text>
+    <text x="1137" y="450" text-anchor="middle" font-size="12" fill="#cbd5e1">télémétrie (lot)</text>
+
+    <rect x="1062" y="494" width="150" height="56" rx="10" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="1137" y="517" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Port Source</text>
+    <text x="1137" y="536" text-anchor="middle" font-size="12" fill="#cbd5e1">d'alertes</text>
+
+    <rect x="1062" y="600" width="150" height="56" rx="10" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="1137" y="623" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Port</text>
+    <text x="1137" y="642" text-anchor="middle" font-size="12" fill="#cbd5e1">Persistance</text>
+  </g>
+
+  <!-- arrows: core -> secondary port -->
+  <line x1="1040" y1="440" x2="1060" y2="436" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="522" x2="1060" y2="522" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="612" x2="1060" y2="626" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= SECONDARY (driven) ADAPTERS ================= -->
+  <g>
+    <rect x="1290" y="350" width="250" height="250" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2" filter="url(#shadow)"/>
+    <text x="1415" y="378" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">Adaptateurs constructeurs</text>
+    <text x="1415" y="397" text-anchor="middle" font-size="11.5" fill="#166534">télémétrie + alertes</text>
+    <line x1="1310" y1="408" x2="1520" y2="408" stroke="#86efac" stroke-width="1"/>
+    <text x="1415" y="433" text-anchor="middle" font-size="14" font-weight="600" fill="#14532d">KPAX</text>
+    <text x="1415" y="467" text-anchor="middle" font-size="14" font-weight="600" fill="#14532d">Konica</text>
+    <text x="1415" y="501" text-anchor="middle" font-size="14" font-weight="600" fill="#14532d">Lexmark</text>
+    <text x="1415" y="535" text-anchor="middle" font-size="14" font-weight="600" fill="#14532d">Archange</text>
+    <text x="1415" y="569" text-anchor="middle" font-size="14" font-weight="600" fill="#14532d">Archange DCA</text>
+
+    <rect x="1290" y="622" width="250" height="72" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2" filter="url(#shadow)"/>
+    <text x="1415" y="652" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">Adaptateurs de persistance</text>
+    <text x="1415" y="672" text-anchor="middle" font-size="11.5" fill="#166534">dépôts / repositories</text>
+  </g>
+
+  <!-- arrows: secondary port -> secondary adapter -->
+  <line x1="1212" y1="436" x2="1288" y2="440" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1212" y1="522" x2="1288" y2="505" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1212" y1="628" x2="1288" y2="655" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= EXTERNAL SYSTEMS ================= -->
+  <g font-size="12.5" font-weight="600" fill="#374151">
+    <rect x="1600" y="413" width="210" height="30" rx="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1705" y="433" text-anchor="middle">KPAX (cloud)</text>
+    <rect x="1600" y="447" width="210" height="30" rx="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1705" y="467" text-anchor="middle">Konica (API)</text>
+    <rect x="1600" y="481" width="210" height="30" rx="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1705" y="501" text-anchor="middle">Lexmark (API)</text>
+    <rect x="1600" y="515" width="210" height="30" rx="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1705" y="535" text-anchor="middle">Archange (serveur distant)</text>
+    <rect x="1600" y="549" width="210" height="30" rx="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1705" y="569" text-anchor="middle">Archange DCA (serveur)</text>
+  </g>
+
+  <!-- internal storage (no DB name) -->
+  <rect x="1600" y="622" width="210" height="72" rx="10" fill="#cbd5e1" stroke="#475569" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1705" y="652" text-anchor="middle" font-size="14" font-weight="700" fill="#1e293b">Base interne ERP</text>
+  <text x="1705" y="672" text-anchor="middle" font-size="11" fill="#334155">compteurs · niveaux · alertes</text>
+
+  <!-- arrows: vendor adapter -> external -->
+  <line x1="1540" y1="428" x2="1598" y2="428" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1540" y1="462" x2="1598" y2="462" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1540" y1="496" x2="1598" y2="496" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1540" y1="530" x2="1598" y2="530" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1540" y1="564" x2="1598" y2="564" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- arrow: persistence adapter -> internal storage -->
+  <line x1="1540" y1="658" x2="1598" y2="658" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= LEGEND ================= -->
+  <g font-size="13" fill="#334155">
+    <rect x="70" y="892" width="20" height="20" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="98" y="907">Adaptateurs primaires (pilotage)</text>
+    <rect x="360" y="892" width="20" height="20" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+    <text x="388" y="907">Cœur métier / services</text>
+    <rect x="600" y="892" width="20" height="20" rx="4" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="628" y="907">Ports (interfaces)</text>
+    <rect x="800" y="892" width="20" height="20" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+    <text x="828" y="907">Adaptateurs secondaires</text>
+    <rect x="1070" y="892" width="20" height="20" rx="4" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="1098" y="907">Systèmes externes</text>
+    <rect x="1290" y="892" width="20" height="20" rx="4" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+    <text x="1318" y="907">Stockage interne</text>
+  </g>
+
+  <!-- ================= PRINCIPLE BANNER ================= -->
+  <rect x="70" y="930" width="1720" height="58" rx="10" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.5"/>
+  <text x="930" y="954" text-anchor="middle" font-size="13.5" fill="#3730a3">Principe : chaque adaptateur traduit sa source dans un modèle commun ; le cœur ignore les constructeurs.</text>
+  <text x="930" y="975" text-anchor="middle" font-size="13.5" fill="#3730a3">Ajouter un constructeur = un nouvel adaptateur, sans toucher au cœur. Les dépendances pointent vers l'intérieur (le cœur définit les ports, les adaptateurs les implémentent).</text>
+</svg>
