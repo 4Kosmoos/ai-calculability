@@ -37,11 +37,17 @@ class Agent:
         r, c = node
         return [tuple(n["node"]) for n in self._call("GET", f"/nodes/{r}/{c}/neighbors")]
 
+    '''Renvoie la liste des adjacences avec leur coût'''
+    def _weighted_neighbors(self, node: Pose) -> list[tuple[Pose, float]]:
+        r, c = node
+        return [(tuple(n["node"]), n["cost"]) for n in self._call("GET", f"/nodes/{r}/{c}/neighbors")]
+
     '''Appel le calcul du chemin'''
     def plan(self) -> list[Pose]:
         mission = self._call("GET", "/mission")
         start, target = tuple(mission["start"]), tuple(mission["target"])
-        return self.strategy.search(start, target, self._neighbors)
+        neighbors = self._weighted_neighbors if getattr(self.strategy, "weighted", False) else self._neighbors
+        return self.strategy.search(start, target, neighbors)
 
     '''Lance le calcul du chemin, appel l'action de grid et affiche le retour de l'api grid'''
     def run(self, verbose: bool = False) -> dict:
