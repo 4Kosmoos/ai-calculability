@@ -9,8 +9,6 @@ from .heuristics import make_heuristic
 
 
 def astar(client: GridClient, problem: Problem, heuristic=None) -> SearchResult:
-    """Tas trié par f = g + h. Optimal en coût si h est admissible.
-    Avec h = 0 on retombe sur Dijkstra."""
     t0, calls0 = perf_counter(), client.api_calls
     start, target = problem.start, problem.target
     h = heuristic or make_heuristic(problem.connectivity)
