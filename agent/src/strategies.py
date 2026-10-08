@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import heapq
+import math
 from collections import deque
 
 Pose = tuple[int, int]
@@ -7,6 +8,10 @@ Pose = tuple[int, int]
 
 def manhattan(a: Pose, b: Pose) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def euclidean(a: Pose, b: Pose) -> float:
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 class SearchStrategy(ABC):
@@ -134,15 +139,10 @@ class Dijkstra(SearchStrategy):
         return []
 
 
-def octile(a: Pose, b: Pose) -> float:
-    dx, dy = abs(a[0] - b[0]), abs(a[1] - b[1])
-    return abs(dx - dy) + 1.5 * min(dx, dy)
-
-
 class AStar(SearchStrategy):
     weighted = True
 
-    def __init__(self, heuristic=octile):
+    def __init__(self, heuristic=euclidean):
         self.heuristic = heuristic
 
     def search(self, start, target, neighbors):
