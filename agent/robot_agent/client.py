@@ -6,7 +6,7 @@ class GridApiError(Exception):
     """Error from the api"""
     
 class GridClient:
-    def __init__(self, base_url="http://localhost:8000", timout=5.0):
+    def __init__(self, base_url="http://localhost:8000", timeout=5.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
@@ -23,7 +23,7 @@ class GridClient:
         return data
     
     def problem(self) -> Problem:
-        s = self._request("GET", "state")
+        s = self._request("GET", "/state")
         m = s["mission"]
         if m is None:
             raise GridApiError("no mission: first do -> POST /init or POST /mission")

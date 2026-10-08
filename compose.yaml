@@ -1,0 +1,23 @@
+services:
+  grid-api:
+    build:
+      context: ./grid/grid_api
+      dockerfile: Containerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Containerfile
+    environment:
+      GRID_URL: http://grid-api:8000
+    depends_on:
+      grid-api:
+        condition: service_healthy
+    profiles: ["agent"]
