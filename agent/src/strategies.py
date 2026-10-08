@@ -6,12 +6,12 @@ from collections import deque
 Pose = tuple[int, int]
 
 
-def manhattan(a: Pose, b: Pose) -> int:
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+def manhattan(pose_a: Pose, pose_b: Pose) -> int:
+    return abs(pose_a[0] - pose_b[0]) + abs(pose_a[1] - pose_b[1])
 
 
-def euclidean(a: Pose, b: Pose) -> float:
-    return math.hypot(a[0] - b[0], a[1] - b[1])
+def euclidean(pose_a: Pose, pose_b: Pose) -> float:
+    return math.hypot(pose_a[0] - pose_b[0], pose_a[1] - pose_b[1])
 
 
 class SearchStrategy(ABC):
@@ -95,8 +95,8 @@ class GreedyBestFirst(SearchStrategy):
         print(f"frontier : {frontier}")
         while frontier:
             print("-- new tour --")
-            h, node = heapq.heappop(frontier)
-            print(f"-- node : {node} (h = {h})")
+            estimate, node = heapq.heappop(frontier)
+            print(f"-- node : {node} (estimate = {estimate})")
             if node == target:
                 path = []
                 while node is not None:
@@ -120,22 +120,25 @@ class Dijkstra(SearchStrategy):
         parent = {start: None}
         frontier = [(0, start)]
         while frontier:
-            d, node = heapq.heappop(frontier)
-            if d > dist[node]:
+            cost_so_far, node = heapq.heappop(frontier)
+            if cost_so_far > dist[node]:
                 continue
-            print(f"-- node : {node} (cost = {d})")
+            print(f"-- node : {node} (cost_so_far = {cost_so_far})")
             if node == target:
                 path = []
+                print(f"-- dist : {len(dist)}")
+                print(f"-- parent : {len(parent)}")
+                print(f"-- frontier : {len(frontier)}")
                 while node is not None:
                     path.append(node)
                     node = parent[node]
                 return path[::-1]
-            for nxt, cost in neighbors(node):
-                nd = d + cost
-                if nd < dist.get(nxt, float("inf")):
-                    dist[nxt] = nd
+            for nxt, edge_cost in neighbors(node):
+                new_cost = cost_so_far + edge_cost
+                if new_cost < dist.get(nxt, float("inf")):
+                    dist[nxt] = new_cost
                     parent[nxt] = node
-                    heapq.heappush(frontier, (nd, nxt))
+                    heapq.heappush(frontier, (new_cost, nxt))
         return []
 
 
@@ -147,24 +150,27 @@ class AStar(SearchStrategy):
 
     def search(self, start, target, neighbors):
         print("Start AStar")
-        g = {start: 0}
+        best_cost = {start: 0}
         parent = {start: None}
         frontier = [(self.heuristic(start, target), 0, start)]
         while frontier:
-            f, d, node = heapq.heappop(frontier)
-            if d > g[node]:
+            priority, cost_so_far, node = heapq.heappop(frontier)
+            if cost_so_far > best_cost[node]:
                 continue
-            print(f"-- node : {node} (g = {d}, f = {f})")
+            print(f"-- node : {node} (cost_so_far = {cost_so_far}, priority = {priority})")
             if node == target:
+                print(f"-- best_cost : {len(best_cost)}")
+                print(f"-- parent : {len(parent)}")
+                print(f"-- frontier : {len(frontier)}")
                 path = []
                 while node is not None:
                     path.append(node)
                     node = parent[node]
                 return path[::-1]
-            for nxt, cost in neighbors(node):
-                nd = d + cost
-                if nd < g.get(nxt, float("inf")):
-                    g[nxt] = nd
+            for nxt, edge_cost in neighbors(node):
+                new_cost = cost_so_far + edge_cost
+                if new_cost < best_cost.get(nxt, float("inf")):
+                    best_cost[nxt] = new_cost
                     parent[nxt] = node
-                    heapq.heappush(frontier, (nd + self.heuristic(nxt, target), nd, nxt))
+                    heapq.heappush(frontier, (new_cost + self.heuristic(nxt, target), new_cost, nxt))
         return []
