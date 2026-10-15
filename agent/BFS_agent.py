@@ -1,4 +1,5 @@
 """BFS controller that drives an agent through the grid API."""
+# Imports pour les arguments de commande, la file BFS, le JSON et les échanges HTTP.
 import argparse
 from collections import deque
 import json
@@ -7,25 +8,30 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+# Une position de la grille est un couple (ligne, colonne).
 Pose = tuple[int, int]
 
 
 class BFSAgent:
 	"""Find a BFS path and send moves to the running grid API."""
 
+	# Mémorise l'adresse de l'API, le nom du robot et le délai maximal des requêtes.
 	def __init__(self, base_url: str = "http://127.0.0.1:8000",
 				 agent_name: str = "robot", timeout: float = 5):
 		self.base_url = base_url.rstrip("/")
 		self.agent_name = agent_name
 		self.timeout = timeout
 
+	# Envoie une requête JSON à l'API et convertit les erreurs réseau en erreurs explicites.
 	def _request(self, path: str, payload: dict | None = None) -> dict:
+		# Prépare le corps de la requête uniquement lorsqu'une donnée doit être envoyée.
 		data = json.dumps(payload).encode("utf-8") if payload is not None else None
 		request = Request(
 			f"{self.base_url}{path}",
 			data=data,
 			headers={"Content-Type": "application/json"} if data is not None else {},
 		)
+		# Lit la réponse de l'API et traduit les erreurs HTTP ou de connexion.
 		try:
 			with urlopen(request, timeout=self.timeout) as response:
 				return json.loads(response.read().decode("utf-8"))
@@ -38,8 +44,10 @@ class BFSAgent:
 		except URLError as error:
 			raise RuntimeError(f"cannot connect to grid API at {self.base_url}: {error.reason}") from error
 
+	# Lit la mission puis cherche un chemin avec la recherche en largeur (BFS).
 	def find_path(self) -> list[Pose]:
-		"""Return a shortest path in moves, avoiding weighted obstacle cells when possible."""
+		"""Return a path with the fewest moves; cell weights do not affect the search."""
+		# Vérifie que la mission existe, est active et appartient à cet agent.
 		state = self._request("/state")
 		mission = state.get("mission")
 		if mission is None:
@@ -51,45 +59,46 @@ class BFSAgent:
 				f"mission belongs to {mission['agent']!r}, not {self.agent_name!r}"
 			)
 
+		# Récupère les positions de départ et d'arrivée à partir de l'état de la grille.
 		agents = {agent["name"]: agent for agent in state["agents"]}
 		if self.agent_name not in agents:
 			raise ValueError(f"agent {self.agent_name!r} is not registered in the grid")
 		start = tuple(agents[self.agent_name]["pose"])
 		target = tuple(mission["target"])
 
-		def search(avoid_weighted: bool) -> list[Pose] | None:
-			frontier = deque([start])
-			previous: dict[Pose, Pose | None] = {start: None}
-			while frontier:
-				current = frontier.popleft()
-				if current == target:
-					path = []
-					while current is not None:
-						path.append(current)
-						current = previous[current]
-					return list(reversed(path))
+		# Explore les cases par couches; les coûts et poids renvoyés par l'API sont ignorés.
+		frontier = deque([start])
+		previous: dict[Pose, Pose | None] = {start: None}
+		while frontier:
+			current = frontier.popleft()
+			if current == target:
+				path = []
+				while current is not None:
+					path.append(current)
+					current = previous[current]
+				return list(reversed(path))
 
-				neighbors = self._request(f"/nodes/{current[0]}/{current[1]}/neighbors")
-				for info in neighbors:
-					neighbor = tuple(info["node"])
-					if neighbor in previous:
-						continue
-					if avoid_weighted and info["obstacle_weight"] > 1 and neighbor != target:
-						continue
-					previous[neighbor] = current
-					frontier.append(neighbor)
-			return None
+			# Récupère les positions voisines; seul leur emplacement est utilisé par BFS.
+			neighbors = self._request(f"/nodes/{current[0]}/{current[1]}/neighbors")
+			for info in neighbors:
+				neighbor = tuple(info["node"])
+				# Ignore uniquement les cases déjà découvertes, sans tester leur poids.
+				if neighbor in previous:
+					continue
+				previous[neighbor] = current
+				frontier.append(neighbor)
 
-		path = search(avoid_weighted=True) or search(avoid_weighted=False)
-		if path is None:
-			raise ValueError(f"no path from {start} to {target}")
-		return path
+		# Si la file est vide, aucune route ne relie le départ à la cible.
+		raise ValueError(f"no path from {start} to {target}")
 
+	# Envoie au serveur les déplacements prévus et surveille l'état de la mission.
 	def run(self, path: list[Pose] | None = None) -> dict:
 		"""Move the mission agent along the planned path and return its final response."""
+		# Calcule le chemin si l'appelant n'en a pas fourni.
 		path = path or self.find_path()
 		result = {}
 		name = quote(self.agent_name, safe="")
+		# Saute la position de départ et déplace le robot case par case.
 		for node in path[1:]:
 			result = self._request(
 				f"/agents/{name}/move", {"to": list(node)}
@@ -102,13 +111,16 @@ class BFSAgent:
 		return result
 
 
+# Configure les options CLI, affiche le chemin et lance les déplacements si demandé.
 def main() -> int:
+	# Lit l'adresse de l'API, le nom du robot et l'option de simulation sans mouvement.
 	parser = argparse.ArgumentParser(description="Drive a grid agent to its target with BFS.")
 	parser.add_argument("--url", default="http://127.0.0.1:8000", help="grid API base URL")
 	parser.add_argument("--agent", default="robot", help="registered mission agent name")
 	parser.add_argument("--dry-run", action="store_true", help="show the path without moving")
 	args = parser.parse_args()
 
+	# Calcule le chemin, l'affiche, puis exécute la mission sauf en mode dry-run.
 	try:
 		agent = BFSAgent(args.url, args.agent)
 		path = agent.find_path()
@@ -119,9 +131,11 @@ def main() -> int:
 		print(result.get("mission", {}).get("message", "Agent moved."))
 		return 0
 	except (RuntimeError, ValueError) as error:
+		# Écrit l'erreur sur stderr et renvoie un code de sortie non nul.
 		print(f"BFS agent: {error}", file=sys.stderr)
 		return 1
 
 
+# N'exécute main que lorsque ce fichier est lancé directement.
 if __name__ == "__main__":
 	raise SystemExit(main())

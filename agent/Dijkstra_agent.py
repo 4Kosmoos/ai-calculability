@@ -1,4 +1,5 @@
 """Dijkstra controller that drives an agent through the grid API."""
+# Imports pour la file de priorité, le JSON, les échanges HTTP et les arguments CLI.
 import argparse
 import heapq
 import itertools
@@ -8,12 +9,14 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+# Type utilisé pour représenter une position (ligne, colonne).
 Pose = tuple[int, int]
 
 
 class DijkstraAgent:
 	"""Find a minimum-cost path and send moves to the running grid API."""
 
+	# Initialise la connexion et prépare le stockage du coût du chemin calculé.
 	def __init__(self, base_url: str = "http://127.0.0.1:8000",
 				 agent_name: str = "robot", timeout: float = 5):
 		self.base_url = base_url.rstrip("/")
@@ -21,13 +24,16 @@ class DijkstraAgent:
 		self.timeout = timeout
 		self.path_cost: float | None = None
 
+	# Envoie les requêtes à l'API et signale explicitement les erreurs HTTP ou de connexion.
 	def _request(self, path: str, payload: dict | None = None) -> dict:
+		# Prépare un corps JSON uniquement pour les appels qui transmettent des données.
 		data = json.dumps(payload).encode("utf-8") if payload is not None else None
 		request = Request(
 			f"{self.base_url}{path}",
 			data=data,
 			headers={"Content-Type": "application/json"} if data is not None else {},
 		)
+		# Décode la réponse JSON et transforme les erreurs réseau en RuntimeError.
 		try:
 			with urlopen(request, timeout=self.timeout) as response:
 				return json.loads(response.read().decode("utf-8"))
@@ -42,8 +48,10 @@ class DijkstraAgent:
 				f"cannot connect to grid API at {self.base_url}: {error.reason}"
 			) from error
 
+	# Applique Dijkstra afin de trouver le chemin de coût total minimal.
 	def find_path(self) -> list[Pose]:
 		"""Return a path whose total movement cost is minimal."""
+		# Vérifie que la mission existe, est en cours et concerne le robot demandé.
 		state = self._request("/state")
 		mission = state.get("mission")
 		if mission is None:
@@ -55,24 +63,29 @@ class DijkstraAgent:
 				f"mission belongs to {mission['agent']!r}, not {self.agent_name!r}"
 			)
 
+		# Charge le départ et la cible de la mission.
 		agents = {agent["name"]: agent for agent in state["agents"]}
 		if self.agent_name not in agents:
 			raise ValueError(f"agent {self.agent_name!r} is not registered in the grid")
 		start = tuple(agents[self.agent_name]["pose"])
 		target = tuple(mission["target"])
 
+		# Initialise les meilleurs coûts connus, les prédécesseurs et la file de priorité.
 		distances: dict[Pose, float] = {start: 0}
 		previous: dict[Pose, Pose] = {}
 		order = itertools.count()
 		frontier = [(0.0, next(order), start)]
 
+		# Développe en priorité la case atteignable avec le coût cumulé le plus faible.
 		while frontier:
 			current_cost, _, current = heapq.heappop(frontier)
+			# Ignore une entrée devenue obsolète après la découverte d'un meilleur trajet.
 			if current_cost > distances[current]:
 				continue
 			if current == target:
 				break
 
+			# Demande les voisins, puis met à jour le coût et le parent si le trajet est meilleur.
 			neighbors = self._request(
 				f"/nodes/{current[0]}/{current[1]}/neighbors"
 			)
@@ -86,6 +99,7 @@ class DijkstraAgent:
 						frontier, (new_cost, next(order), neighbor)
 					)
 
+		# Vérifie que la cible a été atteinte et remonte les parents pour reconstruire le chemin.
 		if target not in distances:
 			raise ValueError(f"no path from {start} to {target}")
 
@@ -96,8 +110,10 @@ class DijkstraAgent:
 		self.path_cost = distances[target]
 		return path
 
+	# Exécute le chemin calculé, ou celui fourni, et renvoie la dernière réponse de l'API.
 	def run(self, path: list[Pose] | None = None) -> dict:
 		"""Move the mission agent along the planned path and return its final response."""
+		# Refuse un chemin vide et gère séparément le cas où le départ est déjà la cible.
 		path = self.find_path() if path is None else path
 		if not path:
 			raise ValueError("path cannot be empty")
@@ -106,6 +122,7 @@ class DijkstraAgent:
 			return {"mission": self._request("/state")["mission"]}
 
 		result = {}
+		# Envoie les déplacements successifs et arrête dès que la mission se termine.
 		for node in path[1:]:
 			result = self._request(
 				f"/agents/{name}/move", {"to": list(node)}
@@ -118,7 +135,9 @@ class DijkstraAgent:
 		raise RuntimeError("path ended while the mission is still running")
 
 
+# Configure l'interface en ligne de commande et lance l'algorithme choisi.
 def main() -> int:
+	# Définit les options pour l'API, le nom du robot et l'affichage sans déplacement.
 	parser = argparse.ArgumentParser(
 		description="Drive a grid agent to its target with Dijkstra's algorithm."
 	)
@@ -127,6 +146,7 @@ def main() -> int:
 	parser.add_argument("--dry-run", action="store_true", help="show the path without moving")
 	args = parser.parse_args()
 
+	# Calcule le trajet, affiche son coût et exécute la mission si dry-run n'est pas demandé.
 	try:
 		agent = DijkstraAgent(args.url, args.agent)
 		path = agent.find_path()
@@ -138,9 +158,11 @@ def main() -> int:
 		print(result.get("mission", {}).get("message", "Agent moved."))
 		return 0
 	except (RuntimeError, ValueError) as error:
+		# Écrit le problème sur stderr et indique l'échec dans le code de sortie.
 		print(f"Dijkstra agent: {error}", file=sys.stderr)
 		return 1
 
 
+# Lance le point d'entrée uniquement lors d'une exécution directe du fichier.
 if __name__ == "__main__":
 	raise SystemExit(main())
