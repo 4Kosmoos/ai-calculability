@@ -3,7 +3,7 @@ from .heuristics import euclidean
 
 
 class AStarWeighted(AStar):
-    """A* avec f(n) = g(n) + w * h(n), w >= 1.
+    """A* avec f(n) = g(n) + w * h(n)
 
     w = 1 -> A* classique ; 
     w grand -> comportement proche de Greedy.
