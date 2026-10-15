@@ -3,7 +3,7 @@ import contextlib
 import io
 
 from agent import Agent
-from strategies import BFS, DFS, GreedyBestFirst, Dijkstra, AStar, manhattan, euclidean
+from strategies import BFS, DFS, GreedyBestFirst, Dijkstra, AStar, AStarWeighted, manhattan, euclidean
 
 STRATEGIES = [
     ("BFS", BFS()),
@@ -12,6 +12,8 @@ STRATEGIES = [
     ("Dijkstra", Dijkstra()),
     ("A* (euclidean)", AStar(euclidean)),
     ("A* (manhattan)", AStar(manhattan)),
+    ("WA* (eucl., w=2)", AStarWeighted(euclidean, 2)),
+    ("WA* (eucl., w=5)", AStarWeighted(euclidean, 5)),
 ]
 
 if __name__ == "__main__":

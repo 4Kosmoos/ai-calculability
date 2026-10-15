@@ -1,7 +1,7 @@
 import sys
 
 from agent import Agent
-from strategies import BFS, DFS, GreedyBestFirst, Dijkstra, AStar, manhattan, euclidean
+from strategies import BFS, DFS, GreedyBestFirst, Dijkstra, AStar, AStarWeighted, manhattan, euclidean
 
 if __name__ == "__main__":
     agent_id = sys.argv[1] if len(sys.argv) > 1 else "robot"
@@ -11,5 +11,6 @@ if __name__ == "__main__":
     agent = Agent(agent_id, Dijkstra())
     #agent = Agent(agent_id, AStar(manhattan))
     #agent = Agent(agent_id, AStar(euclidean))
+    #agent = Agent(agent_id, AStarWeighted(euclidean, 2))
     agent.reset_mission()
     agent.run(verbose=True)

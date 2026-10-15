@@ -53,14 +53,14 @@ class Agent:
         return [nxt for nxt, _ in self._neighbor_info(node)]
 
     '''Renvoie la liste des adjacences avec leur coût'''
-    def _weighted_neighbors(self, node: Pose) -> list[tuple[Pose, float]]:
+    def _cost_neighbors(self, node: Pose) -> list[tuple[Pose, float]]:
         return self._neighbor_info(node)
 
     '''Appel le calcul du chemin'''
     def plan(self) -> list[Pose]:
         mission = self._call("GET", "/mission")
         start, target = tuple(mission["start"]), tuple(mission["target"])
-        neighbors = self._weighted_neighbors if getattr(self.strategy, "weighted", False) else self._neighbors
+        neighbors = self._cost_neighbors if getattr(self.strategy, "uses_costs", False) else self._neighbors
         self.expanded = 0
         self._edge_cost = {}
         t0 = time.perf_counter()
