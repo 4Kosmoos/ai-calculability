@@ -6,7 +6,8 @@ Nécessite l'API grid sur localhost:8000.
 import argparse
 import csv
 
-from optimizer import WEIGHTS, evaluate, grid_search, ratios, refine
+from optimizer import WEIGHTS, evaluate, fitness, grid_search, ratios, refine
+from optimizer.search import compareRandom
 
 MACRO_VALUES = [1, 10, 100, 5000, 100000]
 
@@ -40,16 +41,27 @@ if __name__ == "__main__":
     macro = grid_search(MACRO_VALUES, reference, **options)
     show("Grid search macro", macro, reference)
 
-    (low, high), fine = refine(macro, reference, seed=args.seed, **options)
-    show(f"Recherche fine dans [{low:g}, {high:g}]", fine, reference)
+    (grid_range, random_range), fine = refine(macro, reference, seed=args.seed, **options)
+    show(f"Recherche fine : grid dans [{grid_range[0]:g}, {grid_range[1]:g}], "
+         f"random dans [{random_range[0]:g}, {random_range[1]:g}]", fine, reference)
 
     everything = {row["w"]: row for row in macro + fine}.values()
     best = min(everything, key=lambda r: r["F"])
     print(f"\nMeilleur w = {best['w']:g} (F = {best['F']:.3f}, A* classique = 1.000)")
 
+    simple = compareRandom(reference, seed=args.seed, weights=weights, repeats=args.repeats)
+    show("Random simple (20 tirages dans [1, 500])", simple, reference)
+    best_simple = min(simple, key=lambda r: r["F"])
+    print(f"\nComparaison : refine -> w = {best['w']:g}, F = {best['F']:.3f} ({len(macro) + len(fine)} évaluations)"
+          f" | random simple -> w = {best_simple['w']:g}, F = {best_simple['F']:.3f} ({len(simple)} évaluations)")
+
+    referenceDjik = evaluate(0, repeats=args.repeats)  # Dijkstra : w = 0 (f = g)
+    djikstra = {**referenceDjik, "F": fitness(referenceDjik, reference, weights)}
+    show("Référence Dijkstra (w = 0)", [djikstra], reference)
+
     with open(args.out, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["w", "F", "cost", "time", "memory", "expanded"])
         writer.writeheader()
-        for row in sorted(everything, key=lambda r: r["w"]):
+        for row in sorted([djikstra, *everything], key=lambda r: r["w"]):
             writer.writerow({k: row[k] for k in writer.fieldnames})
     print(f"Résultats écrits dans {args.out}")

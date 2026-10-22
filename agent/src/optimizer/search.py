@@ -37,11 +37,27 @@ def narrow_range(rows):
 
 
 def refine(rows, reference, n_grid=5, n_random=10, seed=0, weights=WEIGHTS, repeats=3):
-    """Grid fin puis random search dans la plage resserrée autour du meilleur w de `rows`."""
-    low, high = narrow_range(rows)
+    """Grid fin autour du meilleur w de `rows`, puis random search autour du meilleur w du grid fin.
+
+    La plage du random est resserrée une seconde fois, sur l'ensemble des résultats (macro + grid fin).
+    Renvoie ((plage du grid fin, plage du random), nouvelles lignes).
+    """
+    grid_range = narrow_range(rows)
+    low, high = grid_range
     cache = {row["w"]: row for row in rows}
     step = (high - low) / (n_grid - 1)
-    print(f"ICI : {[low + i * step for i in range(n_grid)]}")
     fine = grid_search([low + i * step for i in range(n_grid)], reference, weights, repeats, cache)
-    rand = random_search(low, high, n_random, reference, seed, weights, repeats, cache)
-    return (low, high), fine + rand
+    random_range = narrow_range(list(cache.values()))  # sans doublons de w
+    rand = []
+    if random_range[0] < random_range[1]:
+        rand = random_search(*random_range, n_random, reference, seed, weights, repeats, cache)
+    return (grid_range, random_range), fine + rand
+
+
+def compareRandom(reference, n=20, low=1, high=500, seed=0, weights=WEIGHTS, repeats=3):
+    """Baseline : recherche aléatoire simple de n tirages dans [low, high], sans grid ni resserrement.
+
+    Sert à comparer les résultats de `refine` avec une recherche aléatoire pure (cache vide : aucun
+    point réutilisé du grid macro).
+    """
+    return random_search(low, high, n, reference, seed, weights, repeats, cache={})
