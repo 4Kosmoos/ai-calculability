@@ -12,6 +12,13 @@ from strategies import manhattan
 
 MACRO_VALUES = [1, 10, 100, 5000, 100000]
 
+# Pondérations (coût, temps, mémoire) à comparer sur le meilleur w
+CASES = {
+    "Cas 1 : coût 80 %": (0.8, 0.1, 0.1),
+    "Cas 2 : temps 80 %": (0.1, 0.8, 0.1),
+    "Cas 3 : mémoire 80 %": (0.1, 0.1, 0.8),
+}
+
 
 def show(title, rows, reference):
     print(f"\n{title}")
@@ -56,15 +63,28 @@ if __name__ == "__main__":
     print(f"\nComparaison : refine -> w = {best['w']:g}, F = {best['F']:.3f} ({len(macro) + len(fine)} évaluations)"
           f" | random simple -> w = {best_simple['w']:g}, F = {best_simple['F']:.3f} ({len(simple)} évaluations)")
 
+    # Comparaison à Dijkstra
     referenceDjik = evaluate(0, repeats=args.repeats)  # Dijkstra : w = 0 (f = g)
     djikstra = {**referenceDjik, "F": fitness(referenceDjik, reference, weights)}
     show("Référence Dijkstra (w = 0)", [djikstra], reference)
 
+    # Comparaison en changeant l'heuristique
     metrics_manhattan = evaluate(best["w"], heuristic=manhattan, repeats=args.repeats)
     row_manhattan = {**metrics_manhattan, "F": fitness(metrics_manhattan, reference, weights)}
     show(f"h = euclidien, w = {best['w']:g}", [best], reference)
     show(f"h = manhattan, w = {best['w']:g}", [row_manhattan], reference)
     print(f"\nHeuristique au meilleur w : euclidien F = {best['F']:.3f} | manhattan F = {row_manhattan['F']:.3f}")
+
+    # Comparaison en changeant les poids
+    pool = list({row["w"]: row for row in [*everything, *simple]}.values())
+    print(f"\nComparaison de 3 pondérations (points déjà évalués : {len(pool)}), w actuel = {best['w']:g}")
+    print(f"{'cas':<24}{'meilleur w':>12}{'F':>8}{'coût':>8}{'temps (ms)':>12}{'tas':>6}   F du w actuel")
+    for name, case_weights in CASES.items():
+        scored = [{**row, "F": fitness(row, reference, case_weights)} for row in pool]
+        best_case = min(scored, key=lambda r: r["F"])
+        current = fitness(best, reference, case_weights)
+        print(f"{name:<24}{best_case['w']:>12g}{best_case['F']:>8.3f}{best_case['cost']:>8.1f}"
+              f"{best_case['time']*1000:>12.1f}{best_case['memory']:>6}   {current:.3f}")
 
     with open(args.out, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["w", "F", "cost", "time", "memory", "expanded"])
