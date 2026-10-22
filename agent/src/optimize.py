@@ -8,6 +8,7 @@ import csv
 
 from optimizer import WEIGHTS, evaluate, fitness, grid_search, ratios, refine
 from optimizer.search import compareRandom
+from strategies import manhattan
 
 MACRO_VALUES = [1, 10, 100, 5000, 100000]
 
@@ -58,6 +59,12 @@ if __name__ == "__main__":
     referenceDjik = evaluate(0, repeats=args.repeats)  # Dijkstra : w = 0 (f = g)
     djikstra = {**referenceDjik, "F": fitness(referenceDjik, reference, weights)}
     show("Référence Dijkstra (w = 0)", [djikstra], reference)
+
+    metrics_manhattan = evaluate(best["w"], heuristic=manhattan, repeats=args.repeats)
+    row_manhattan = {**metrics_manhattan, "F": fitness(metrics_manhattan, reference, weights)}
+    show(f"h = euclidien, w = {best['w']:g}", [best], reference)
+    show(f"h = manhattan, w = {best['w']:g}", [row_manhattan], reference)
+    print(f"\nHeuristique au meilleur w : euclidien F = {best['F']:.3f} | manhattan F = {row_manhattan['F']:.3f}")
 
     with open(args.out, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["w", "F", "cost", "time", "memory", "expanded"])
