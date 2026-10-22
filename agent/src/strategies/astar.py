@@ -24,19 +24,16 @@ class AStar(SearchStrategy):
         self.weight = weight
 
     def search(self, start, target, neighbors):
-        print("Start AStar")
         best_cost = {start: 0}
         parent = {start: None}
         frontier = [(self.weight * self.heuristic(start, target), 0, start)]
+        peak = 1
         while frontier:
             priority, cost_so_far, node = heapq.heappop(frontier)
             if cost_so_far > best_cost[node]:
                 continue
-            print(f"-- node : {node} (cost_so_far = {cost_so_far}, priority = {priority})")
             if node == target:
-                print(f"-- best_cost : {len(best_cost)}")
-                print(f"-- parent : {len(parent)}")
-                print(f"-- frontier : {len(frontier)}")
+                self._record(len(best_cost), peak)
                 path = []
                 while node is not None:
                     path.append(node)
@@ -47,5 +44,8 @@ class AStar(SearchStrategy):
                 if new_cost < best_cost.get(nxt, float("inf")):
                     best_cost[nxt] = new_cost
                     parent[nxt] = node
-                    heapq.heappush(frontier, (new_cost + self.weight * self.heuristic(nxt, target), new_cost, nxt))
+                    heapq.heappush(frontier, (new_cost + self.weight * self.heuristic(nxt, target),
+                                              new_cost, nxt))
+            peak = max(peak, len(frontier))
+        self._record(len(best_cost), peak)
         return []

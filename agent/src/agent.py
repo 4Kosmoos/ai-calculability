@@ -73,6 +73,7 @@ class Agent:
             "steps": max(len(path) - 1, 0),
             "cost": sum(self._edge_cost[edge] for edge in zip(path, path[1:])) if path else None,
         }
+        self.metrics.update(self.strategy.stats or {}) 
         return path
 
     '''Lance le calcul du chemin, appel l'action de grid et affiche le retour de l'api grid'''

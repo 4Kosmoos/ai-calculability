@@ -24,8 +24,9 @@ if __name__ == "__main__":
             agent.plan()
         rows.append((name, agent.metrics))
     best = min(metrics["cost"] for _, metrics in rows if metrics["cost"] is not None)
-    print(f"{'algo':<20}{'nœuds dév.':>11}{'temps (ms)':>12}{'pas':>5}{'coût':>8}  optimal")
+    print(f"{'algo':<20}{'nœuds dév.':>11}{'temps (ms)':>12}{'pas':>5}{'coût':>8}{'mém.':>8}  optimal")
     for name, metrics in sorted(rows, key=lambda entry: (entry[1]["cost"] is None, entry[1]["cost"], entry[1]["expanded"])):
         cost = "-" if metrics["cost"] is None else f"{metrics['cost']:.1f}"
         opt = "oui" if metrics["cost"] is not None and abs(metrics["cost"] - best) < 1e-9 else "non"
-        print(f"{name:<20}{metrics['expanded']:>11}{metrics['time']*1000:>12.1f}{metrics['steps']:>5}{cost:>8}  {opt}")
+        mem = metrics["stored"] + metrics["peak_frontier"]
+        print(f"{name:<20}{metrics['expanded']:>11}{metrics['time']*1000:>12.1f}{metrics['steps']:>5}{cost:>8}{mem:>8}  {opt}")

@@ -10,16 +10,13 @@ class GreedyBestFirst(SearchStrategy):
         self.heuristic = heuristic
 
     def search(self, start, target, neighbors):
-        print("Start GreedyBestFirst")
         parent = {start: None}
         frontier = [(self.heuristic(start, target), start)]
-        print(f"parent : {parent}")
-        print(f"frontier : {frontier}")
+        peak = 1
         while frontier:
-            print("-- new tour --")
-            estimate, node = heapq.heappop(frontier)
-            print(f"-- node : {node} (estimate = {estimate})")
+            _, node = heapq.heappop(frontier)
             if node == target:
+                self._record(len(parent), peak)
                 path = []
                 while node is not None:
                     path.append(node)
@@ -29,5 +26,6 @@ class GreedyBestFirst(SearchStrategy):
                 if nxt not in parent:
                     parent[nxt] = node
                     heapq.heappush(frontier, (self.heuristic(nxt, target), nxt))
-            print(f"-- frontier size : {len(frontier)}")
+            peak = max(peak, len(frontier))
+        self._record(len(parent), peak)
         return []

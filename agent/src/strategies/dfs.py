@@ -4,29 +4,22 @@ from .base import SearchStrategy
 class DFS(SearchStrategy):
 
     def search(self, start, target, neighbors):
-        print("Start DFS")
         parent = {start: None}
         stack = [start]
-        print(f"parent : {parent}")
-        print(f"stack : {stack}")
+        peak = 1
         while stack:
-            print("---- new tour ----")
             node = stack.pop()
-            print(f"-- node : {node}")
             if node == target:
-                print(f"#### target trouvé ####")
-                print(f"-- parent : {parent}")
+                self._record(len(parent), peak)
                 path = []
                 while node is not None:
                     path.append(node)
                     node = parent[node]
-                    print(f"-- path : {path}")
                 return path[::-1]
             for nxt in neighbors(node):
                 if nxt not in parent:
                     parent[nxt] = node
                     stack.append(nxt)
-            print(f"-- parent size : {len(parent)}")
-            print(f"-- stack size : {len(stack)}")
-            print(f"-- stack : {stack}")
+            peak = max(peak, len(stack))
+        self._record(len(parent), peak)
         return []

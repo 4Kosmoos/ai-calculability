@@ -7,20 +7,17 @@ class Dijkstra(SearchStrategy):
     uses_costs = True
 
     def search(self, start, target, neighbors):
-        print("Start Dijkstra")
         dist = {start: 0}
         parent = {start: None}
         frontier = [(0, start)]
+        peak = 1
         while frontier:
             cost_so_far, node = heapq.heappop(frontier)
             if cost_so_far > dist[node]:
                 continue
-            print(f"-- node : {node} (cost_so_far = {cost_so_far})")
             if node == target:
+                self._record(len(dist), peak)
                 path = []
-                print(f"-- dist : {len(dist)}")
-                print(f"-- parent : {len(parent)}")
-                print(f"-- frontier : {len(frontier)}")
                 while node is not None:
                     path.append(node)
                     node = parent[node]
@@ -31,4 +28,6 @@ class Dijkstra(SearchStrategy):
                     dist[nxt] = new_cost
                     parent[nxt] = node
                     heapq.heappush(frontier, (new_cost, nxt))
+            peak = max(peak, len(frontier))
+        self._record(len(dist), peak)
         return []
