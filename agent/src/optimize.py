@@ -6,7 +6,7 @@ Nécessite l'API grid sur localhost:8000.
 import argparse
 import csv
 
-from optimizer import WEIGHTS, evaluate, fitness, grid_search, ratios, refine
+from optimizer import WEIGHTS, evaluate, fitness, grid_search, ratios, refine, hill_climbing
 from optimizer.search import compareRandom
 from strategies import manhattan
 
@@ -56,6 +56,14 @@ if __name__ == "__main__":
     everything = {row["w"]: row for row in macro + fine}.values()
     best = min(everything, key=lambda r: r["F"])
     print(f"\nMeilleur w = {best['w']:g} (F = {best['F']:.3f}, A* classique = 1.000)")
+    
+    cache = {row["w"]: row for row in everything}
+    climb = hill_climbing(best["w"], reference, cache=cache, **options)
+    show(f"Hill climbing depuis w = {best['w']:g}", climb, reference)
+    best_climb = min(climb, key=lambda r: r["F"])
+    new_evals = sum(1 for r in climb if r["w"] not in {x["w"] for x in everything})
+    print(f"\nHill climbing -> w = {best_climb['w']:g}, F = {best_climb['F']:.3f} "
+          f"(départ F = {best['F']:.3f}, {new_evals} nouvelles évaluations)")
 
     simple = compareRandom(reference, seed=args.seed, weights=weights, repeats=args.repeats)
     show("Random simple (20 tirages dans [1, 500])", simple, reference)
@@ -86,6 +94,7 @@ if __name__ == "__main__":
         print(f"{name:<24}{best_case['w']:>12g}{best_case['F']:>8.3f}{best_case['cost']:>8.1f}"
               f"{best_case['time']*1000:>12.1f}{best_case['memory']:>6}   {current:.3f}")
 
+    everything = {row["w"]: row for row in [*everything, *climb]}.values()
     with open(args.out, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["w", "F", "cost", "time", "memory", "expanded"])
         writer.writeheader()

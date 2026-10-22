@@ -61,3 +61,28 @@ def compareRandom(reference, n=20, low=1, high=500, seed=0, weights=WEIGHTS, rep
     point réutilisé du grid macro).
     """
     return random_search(low, high, n, reference, seed, weights, repeats, cache={})
+
+def hill_climbing(start_w, reference, step=None, min_step=0.01, shrink=0.5,
+                  low=0.0, high=None, max_iter=50, weights=WEIGHTS, repeats=3, cache=None):
+    """Hill climbing 1D sur w : on teste w-step et w+step, on avance si F baisse.
+    Quand aucun voisin n'améliore F, on divise le pas par 2 jusqu'à min_step.
+    Renvoie la liste des points évalués (comme grid_search)."""
+    cache = {} if cache is None else cache
+    step = step if step is not None else max(start_w * 0.25, 0.1)
+    w = round(start_w, 4)
+    current = _score(w, reference, weights, repeats, cache)
+    visited = [current]
+    for _ in range(max_iter):
+        if step < min_step:
+            break
+        candidates = [round(w - step, 4), round(w + step, 4)]
+        candidates = [c for c in candidates
+                      if c > low and (high is None or c <= high)]
+        scored = [_score(c, reference, weights, repeats, cache) for c in candidates]
+        visited += scored
+        best = min(scored, key=lambda r: r["F"], default=None)
+        if best is not None and best["F"] < current["F"]:
+            current, w = best, best["w"]
+        else:
+            step *= shrink
+    return visited
