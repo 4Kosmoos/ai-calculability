@@ -22,9 +22,11 @@ class AStar(SearchStrategy):
     def __init__(self, heuristic=euclidean, weight=1.0):
         self.heuristic = heuristic
         self.weight = weight
+        self.max_frontier = 0
 
     def search(self, start, target, neighbors):
         print("Start AStar")
+        self.max_frontier = 1
         best_cost = {start: 0}
         parent = {start: None}
         frontier = [(self.weight * self.heuristic(start, target), 0, start)]
@@ -48,4 +50,5 @@ class AStar(SearchStrategy):
                     best_cost[nxt] = new_cost
                     parent[nxt] = node
                     heapq.heappush(frontier, (new_cost + self.weight * self.heuristic(nxt, target), new_cost, nxt))
+                    self.max_frontier = max(self.max_frontier, len(frontier))
         return []

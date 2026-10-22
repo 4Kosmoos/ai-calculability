@@ -70,6 +70,7 @@ class Agent:
             "algo": type(self.strategy).__name__,
             "expanded": self.expanded,
             "time": elapsed,
+            "memory": getattr(self.strategy, "max_frontier", None),
             "steps": max(len(path) - 1, 0),
             "cost": sum(self._edge_cost[edge] for edge in zip(path, path[1:])) if path else None,
         }
