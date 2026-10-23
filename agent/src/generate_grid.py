@@ -26,6 +26,14 @@ def build_payload(size: int, density: float, min_weight: int, max_weight: int, s
     }
 
 
+def init_grid(size=60, density=0.25, seed=42, url="http://localhost:8000", min_weight=2, max_weight=40) -> dict:
+    """POST /init avec une grille aléatoire ; renvoie le payload envoyé."""
+    payload = build_payload(size, density, min_weight, max_weight, seed)
+    resp = requests.post(url.rstrip("/") + "/init", json=payload, timeout=60)
+    resp.raise_for_status()
+    return payload
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--size", type=int, default=60)
@@ -36,9 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--url", default="http://localhost:8000")
     args = parser.parse_args()
 
-    payload = build_payload(args.size, args.density, args.min_weight, args.max_weight, args.seed)
-    resp = requests.post(args.url.rstrip("/") + "/init", json=payload, timeout=60)
-    resp.raise_for_status()
+    payload = init_grid(args.size, args.density, args.seed, args.url, args.min_weight, args.max_weight)
     print(f"Grille {args.size}x{args.size}, {len(payload['obstacles'])} obstacles "
           f"(poids {args.min_weight}-{args.max_weight}), seed {args.seed}, "
           f"mission {payload['mission']['start']} -> {payload['mission']['target']}")
